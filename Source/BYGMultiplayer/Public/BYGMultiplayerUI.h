@@ -14,9 +14,9 @@ public:
 
 	void Init();
 	void DrawDebug(bool* bIsOpen);
-
+	
 	bool bHostLAN = false;
-	char HostGameName[64] = "Follow Me Game";
+	char HostGameName[64] = "Test Game";
 	TSharedPtr<FUniqueNetId> SessionId;
 	bool bIsHosting = false;
 	bool bIsEndingHosting = false;
@@ -24,12 +24,7 @@ public:
 	char LobbyMap[128] = "MP_Lobby";
 	char MapArguments[128] = "listen";
 	int32 HostSelectedMapIndex = 0;
-	const char* HostMaps[3] = {
-		"FM_Level1-Networked"
-		"MP_MultiplayerTest2",
-		"MP_MultiplayerTest",
-		"FM_Level1"
-	};
+	TArray<FString> HostMaps;
 	
 
 	bool bIsJoinedSession = false;

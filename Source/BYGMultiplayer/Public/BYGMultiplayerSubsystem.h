@@ -91,7 +91,6 @@ public:
 	// Making this all public for now. be nice
 
 	bool bHostLAN = false;
-	//char HostGameName[64] = "Follow Me Game";
 	TSharedPtr<FUniqueNetId> SessionId;
 	FBYGOnlineSessionSettings OnlineSessionSettings;
 
@@ -125,6 +124,11 @@ public:
 	void ResetState();
 
 	TSharedPtr<class FOnlineSessionSearch> SessionSearch;
+	
+	UPROPERTY()
+	class UBYGMultiplayerUI* UI;
+
+	FString GetPlayerNickname() const;
 protected:
 	FName CurrentSubsystemName = NAME_None;
 	bool InitializeOnlineSubsystem(const FName& SubsystemName);
@@ -168,6 +172,4 @@ protected:
 	virtual UWorld* GetWorld() const override;
 
 
-	UPROPERTY()
-	class UBYGMultiplayerUI* UI;
 };

@@ -232,9 +232,19 @@ void UBYGMultiplayerUI::DrawDebug(bool* bIsOpen)
 			ImGui::InputInt("Public slots", &Sys->OnlineSessionSettings.NumPublicConnections);
 			ImGui::SameLine();
 			ImGui::HelpMarker("The number of people that can play on the server (including the host if it is a non-dedicated game).");
-			if (ImGui::Combo("Map", &HostSelectedMapIndex, HostMaps, IM_ARRAYSIZE(HostMaps)))
+			if (ImGui::BeginCombo("Map", TCHAR_TO_ANSI(*HostMaps[HostSelectedMapIndex])))
 			{
-				// ??
+				for (int32 i = 0; i < HostMaps.Num(); ++i)
+				{
+					const bool bIsSelected = (i == HostSelectedMapIndex);
+					if (ImGui::Selectable(TCHAR_TO_ANSI(*HostMaps[i]), bIsSelected))
+					{
+						HostSelectedMapIndex = i;
+					}
+					if (bIsSelected)
+    					ImGui::SetItemDefaultFocus();   // Set the initial focus when opening the combo (scrolling + for keyboard navigation support in the upcoming navigation branch)
+				}
+				ImGui::EndCombo();
 			}
 			if (bIsHosting || bIsEndingHosting)
 			{
@@ -282,7 +292,7 @@ void UBYGMultiplayerUI::DrawDebug(bool* bIsOpen)
 					GetMultiplayerSubsystem()->CancelHostingGame();
 				}
 
-				ShowRegisterButton();
+				//ShowRegisterButton();
 
 				IOnlineSessionPtr SessionInterface = GetMultiplayerSubsystem()->GetSession();
 				FNamedOnlineSession* FoundSession = SessionInterface->GetNamedSession(NAME_GameSession);
@@ -322,7 +332,7 @@ void UBYGMultiplayerUI::DrawDebug(bool* bIsOpen)
 				{
 					// Set the props
 					GetMultiplayerSubsystem()->OnlineSessionSettings.ServerName = HostGameName;
-					GetMultiplayerSubsystem()->OnlineSessionSettings.TargetMapName = HostMaps[HostSelectedMapIndex];
+					GetMultiplayerSubsystem()->OnlineSessionSettings.TargetMapName = FName(HostMaps[HostSelectedMapIndex]);
 					GetMultiplayerSubsystem()->OnlineSessionSettings.LobbyMapName = LobbyMap;
 					GetMultiplayerSubsystem()->OnlineSessionSettings.MapArguments = { MapArguments };
 					GetMultiplayerSubsystem()->HostGame();
@@ -367,7 +377,7 @@ void UBYGMultiplayerUI::DrawDebug(bool* bIsOpen)
 				GetMultiplayerSubsystem()->FindSessions();
 			}
 
-			ShowRegisterButton();
+			//ShowRegisterButton();
 
 			TArray<FOnlineSessionSearchResult> Results;
 			if (GetMultiplayerSubsystem()->SessionSearch.IsValid())
@@ -395,7 +405,7 @@ void UBYGMultiplayerUI::DrawDebug(bool* bIsOpen)
 				{
 					ImGui::PushID(i);
 					const FOnlineSessionSetting* ServerNameProp = Results[i].Session.SessionSettings.Settings.Find(SETTING_SERVER_NAME);
-					FString ServerNam;
+					FString ServerName;
 					ServerNameProp->Data.GetValue(ServerName);
 					ImGui::Text(TCHAR_TO_ANSI(*ServerName));
 					ImGui::NextColumn();

@@ -436,3 +436,17 @@ void UBYGMultiplayerSubsystem::OnCancelFindSessionsComplete(bool bWasSuccessful)
 	UE_LOG(LogBYGMultiplayer, Log, TEXT("On cancel find session complete: %d"), bWasSuccessful);
 }
 #endif
+
+FString UBYGMultiplayerSubsystem::GetPlayerNickname() const
+{
+	IOnlineSubsystem* Subsystem = IOnlineSubsystem::Get(CurrentSubsystemName);
+	if (Subsystem)
+	{
+		IOnlineIdentityPtr Identity = Subsystem->GetIdentityInterface();
+		if (Identity.IsValid())
+		{
+			return Identity->GetPlayerNickname(0);
+		}
+	}
+	return "(Unknown)";
+}
