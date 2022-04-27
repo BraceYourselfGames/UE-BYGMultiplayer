@@ -102,7 +102,6 @@ public:
 	bool bFindViaPresence = true;
 	int32 FindMaxResults = 10;
 	int32 FindTimeout = 10;
-	int32 FindCurrentItem = 0;
 
 	//bool bIsLoggedIn = false;
 	//FString PlayerNickname = "(Unknown)";
@@ -154,7 +153,12 @@ protected:
 	void OnFindSessionsComplete(bool bWasSuccessful);
 
 	//void OnUpdateSessionComplete(FName SessionName, bool bWasSuccessful);
-	//void OnEndSessionComplete(FName SessionName, bool bWasSuccessful);
+
+	void DoEndSession(FName SessionName);
+
+	FOnEndSessionCompleteDelegate EndSessionCompleteDelegate;
+	FDelegateHandle EndSessionCompleteDelegateHandle;
+	void OnEndSessionComplete(FName SessionName, bool bWasSuccessful);
 	//void OnDestroySessionComplete(FName SessionName, bool bWasSuccessful);
 	//void OnPingSearchResultsComplete(bool bWasSuccessful);
 	//void OnCancelFindSessionsComplete(bool bWasSuccessful);
@@ -164,12 +168,10 @@ protected:
 	//void OnUnregisterPlayersComplete(FName SessionName, const TArray<TSharedRef<const FUniqueNetId>>& PlayerIDs, bool bWasSuccessful);
 
 	// See Engine.h for these originally
-	//virtual void HandleNetworkFailure(UWorld* World, UNetDriver* NetDriver, ENetworkFailure::Type FailureType, const FString& ErrorString);
-	//virtual void HandleTravelFailure(UWorld* InWorld, ETravelFailure::Type FailureType, const FString& ErrorString);
+	virtual void HandleNetworkFailure(UWorld* World, UNetDriver* NetDriver, ENetworkFailure::Type FailureType, const FString& ErrorString);
+	virtual void HandleTravelFailure(UWorld* InWorld, ETravelFailure::Type FailureType, const FString& ErrorString);
 
 
 	/** @return the current game world */
 	virtual UWorld* GetWorld() const override;
-
-
 };
