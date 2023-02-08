@@ -60,6 +60,7 @@ public:
 		BaseSettings.bUsesPresence = bUsesPresence;
 		BaseSettings.bAllowJoinInProgress = bAllowJoinInProgress;
 		BaseSettings.bAllowJoinViaPresence = bAllowJoinViaPresence;
+		BaseSettings.bUseLobbiesIfAvailable = true;
 		BaseSettings.Set<FString>(SETTING_MAPNAME, TargetPublicFacingMapName, EOnlineDataAdvertisementType::ViaOnlineServiceAndPing);
 		// Custom but we can standardize it
 		BaseSettings.Set<FString>(SETTING_SERVER_NAME, ServerName, EOnlineDataAdvertisementType::ViaOnlineServiceAndPing);
