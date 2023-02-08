@@ -25,6 +25,7 @@ void UBYGMultiplayerSubsystem::ResetState()
 		SessionInterface->ClearOnStartSessionCompleteDelegate_Handle(StartCompleteDelegateHandle);
 		SessionInterface->ClearOnJoinSessionCompleteDelegate_Handle(JoinCompleteDelegateHandle);
 		SessionInterface->ClearOnFindSessionsCompleteDelegate_Handle(FindSessionsCompleteDelegateHandle);
+		SessionInterface->ClearOnEndSessionCompleteDelegate_Handle(EndSessionCompleteDelegateHandle);
 
 		SessionInterface->DestroySession(NAME_GameSession);
 	}
@@ -56,11 +57,12 @@ void UBYGMultiplayerSubsystem::Initialize(FSubsystemCollectionBase& Collection)
 	JoinCompleteDelegate = FOnJoinSessionCompleteDelegate::CreateUObject(this, &ThisClass::OnJoinSessionComplete);
 	FindSessionsCompleteDelegate = FOnFindSessionsCompleteDelegate::CreateUObject(this, &ThisClass::OnFindSessionsComplete);
 	LoginCompleteDelegate = FOnLoginCompleteDelegate::CreateUObject(this, &ThisClass::OnLoginComplete);
+	EndSessionCompleteDelegate = FOnEndSessionCompleteDelegate::CreateUObject(this, &ThisClass::OnEndSessionComplete);
 
 	if (ensure(GEngine))
 	{
-		//GEngine->OnTravelFailure().AddUObject(this, &UBYGMultiplayerSubsystem::HandleTravelFailure);
-		//GEngine->OnNetworkFailure().AddUObject(this, &UBYGMultiplayerSubsystem::HandleNetworkFailure);
+		GEngine->OnTravelFailure().AddUObject(this, &UBYGMultiplayerSubsystem::HandleTravelFailure);
+		GEngine->OnNetworkFailure().AddUObject(this, &UBYGMultiplayerSubsystem::HandleNetworkFailure);
 	}
 }
 
@@ -192,16 +194,8 @@ void UBYGMultiplayerSubsystem::CancelHostingGame()
 	IOnlineSessionPtr SessionInterface = GetSession();
 	if (SessionInterface)
 	{
-		// end immediately or not
-		if (SessionInterface->EndSession(NAME_GameSession))
-		{
-			//bIsEndingHosting = true;
-		}
-		else
-		{
-			SessionInterface->DestroySession(NAME_GameSession);
-			//bIsHosting = false;
-		}
+		bIsEndingHosting = true;
+		DoEndSession(NAME_GameSession);
 	}
 }
 
@@ -310,7 +304,6 @@ void UBYGMultiplayerSubsystem::OnJoinSessionComplete(FName SessionName, EOnJoinS
 	}
 }
 
-
 void UBYGMultiplayerSubsystem::JoinSession(uint32 Index)
 {
 	UE_LOG(LogBYGMultiplayer, Log, TEXT("Join session index '%d'"), Index);
@@ -371,6 +364,14 @@ UWorld* UBYGMultiplayerSubsystem::GetWorld() const
 	return GetGameInstance()->GetWorld();
 }
 
+void UBYGMultiplayerSubsystem::HandleNetworkFailure(UWorld* World, UNetDriver* NetDriver, ENetworkFailure::Type FailureType, const FString& ErrorString) {
+	DoEndSession(NAME_GameSession);
+}
+
+void UBYGMultiplayerSubsystem::HandleTravelFailure(UWorld* InWorld, ETravelFailure::Type FailureType, const FString& ErrorString) {
+	DoEndSession(NAME_GameSession);
+}
+
 #if WITH_IMGUI
 void UBYGMultiplayerSubsystem::DrawDebug(bool* bIsOpen)
 {
@@ -400,15 +401,35 @@ void UBYGMultiplayerSubsystem::OnUpdateSessionComplete(FName SessionName, bool b
 {
 	UE_LOG(LogBYGMultiplayer, Log, TEXT("On update session complete"));
 }
+#endif
+
+void UBYGMultiplayerSubsystem::DoEndSession(FName SessionName) {
+	IOnlineSessionPtr SessionInterface = GetSession();
+	if (SessionInterface) {
+		EOnlineSessionState::Type state = SessionInterface->GetSessionState(SessionName);
+		if (state == EOnlineSessionState::InProgress) {
+			EndSessionCompleteDelegateHandle = SessionInterface->AddOnCreateSessionCompleteDelegate_Handle(EndSessionCompleteDelegate);
+			SessionInterface->EndSession(SessionName);
+		} else {
+			SessionInterface->DestroySession(SessionName);
+		}
+	}
+}
 
 void UBYGMultiplayerSubsystem::OnEndSessionComplete(FName SessionName, bool bWasSuccessful)
 {
 	UE_LOG(LogBYGMultiplayer, Log, TEXT("On end session complete"));
 	bIsEndingHosting = false;
 	bIsHosting = false;
-	//CurrentHostedGameName = NAME_None;
+
+	IOnlineSessionPtr SessionInterface = GetSession();
+	if (SessionInterface) {
+		SessionInterface->ClearOnEndSessionCompleteDelegate_Handle(EndSessionCompleteDelegateHandle);
+		SessionInterface->DestroySession(SessionName);
+	}
 }
 
+#if 0
 void UBYGMultiplayerSubsystem::OnDestroySessionComplete(FName SessionName, bool bWasSuccessful)
 {
 	UE_LOG(LogBYGMultiplayer, Log, TEXT("On destroy session complete"));
